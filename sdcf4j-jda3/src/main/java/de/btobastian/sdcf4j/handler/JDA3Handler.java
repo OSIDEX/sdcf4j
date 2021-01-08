@@ -46,11 +46,33 @@ public class JDA3Handler extends CommandHandler {
     private static final Logger logger = LoggerFactory.getLogger(JDA3Handler.class);
 
     /**
+     * Whether or not to allow the commands to be ran by the discord owner
+     */
+    private static boolean allowSelf = false;
+
+    /**
      * Creates a new instance of this class.
      *
      * @param jda A JDA instance.
      */
     public JDA3Handler(JDA jda) {
+        allowSelf = false;
+        jda.addEventListener(new ListenerAdapter() {
+            @Override
+            public void onMessageReceived(MessageReceivedEvent event) {
+                handleMessageCreate(event);
+            }
+        });
+    }
+
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param jda A JDA instance.
+     * @param _allowSelf Whether to allow self responses
+     */
+    public JDA3Handler(JDA jda, boolean _allowSelf) {
+        allowSelf = _allowSelf;
         jda.addEventListener(new ListenerAdapter() {
             @Override
             public void onMessageReceived(MessageReceivedEvent event) {
@@ -87,7 +109,7 @@ public class JDA3Handler extends CommandHandler {
      */
     private void handleMessageCreate(final MessageReceivedEvent event) {
         JDA jda = event.getJDA();
-        if (event.getAuthor() == jda.getSelfUser()) {
+        if (event.getAuthor() == jda.getSelfUser() && !allowSelf) {
             return;
         }
         String[] splitMessage = event.getMessage().getContentRaw().split("[\\s&&[^\\n]]++");

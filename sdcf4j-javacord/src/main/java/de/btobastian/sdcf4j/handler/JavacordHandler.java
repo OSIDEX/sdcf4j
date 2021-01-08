@@ -1,18 +1,18 @@
 /*
  * Copyright (C) 2016 Bastian Oppermann
- * 
+ *
  * This file is part of SDCF4J.
- * 
+ *
  * Javacord is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser general Public License as
  * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * SDCF4J is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
@@ -51,11 +51,28 @@ public class JavacordHandler extends CommandHandler {
     private static final Logger logger = LoggerUtil.getLogger(JavacordHandler.class);
 
     /**
+     * Whether or not to allow the commands to be ran by the discord owner
+     */
+    private static boolean allowSelf = false;
+
+    /**
      * Creates a new instance of this class.
      *
      * @param api The api.
      */
     public JavacordHandler(DiscordApi api) {
+        allowSelf = false;
+        api.addMessageCreateListener(event -> handleMessageCreate(api, event));
+    }
+
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param api The api.
+     * @param _allowSelf Whether to allow self responses
+     */
+    public JavacordHandler(DiscordApi api, boolean _allowSelf) {
+        allowSelf = _allowSelf;
         api.addMessageCreateListener(event -> handleMessageCreate(api, event));
     }
 
@@ -88,7 +105,7 @@ public class JavacordHandler extends CommandHandler {
      */
     private void handleMessageCreate(DiscordApi api, final MessageCreateEvent event) {
         Message message = event.getMessage();
-        if (message.getUserAuthor().map(User::isYourself).orElse(false)) {
+        if (message.getAuthor().isYourself() && !allowSelf) {
             return;
         }
         String[] splitMessage = message.getContent().split("[\\s&&[^\\n]]++");

@@ -44,11 +44,28 @@ import java.util.regex.Matcher;
 public class Discord4JHandler extends CommandHandler {
 
     /**
+     * Whether or not to allow the commands to be ran by the discord owner
+     */
+    private static boolean allowSelf = false;
+
+    /**
      * Creates a new instance of this class.
      *
      * @param client The discord client.
      */
     public Discord4JHandler(IDiscordClient client) {
+        allowSelf = false;
+        client.getDispatcher().registerListener((IListener<MessageReceivedEvent>) this::handleMessageCreate);
+    }
+
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param client The discord client.
+     * @param _allowSelf Whether to allow self responses
+     */
+    public Discord4JHandler(IDiscordClient client, boolean _allowSelf) {
+        allowSelf = _allowSelf;
         client.getDispatcher().registerListener((IListener<MessageReceivedEvent>) this::handleMessageCreate);
     }
 
@@ -79,6 +96,9 @@ public class Discord4JHandler extends CommandHandler {
      * @param event The MessageReceivedEvent.
      */
     private void handleMessageCreate(final MessageReceivedEvent event) {
+        if (event.getClient().getOurUser() == event.getAuthor() && !allowSelf) {
+            return;
+        }
         String[] splitMessage = event.getMessage().getContent().split("[\\s&&[^\\n]]++");
         String commandString = splitMessage[0];
         SimpleCommand command = commands.get(commandString.toLowerCase());
